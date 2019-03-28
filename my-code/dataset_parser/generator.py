@@ -128,7 +128,7 @@ def data_generator(d_path, b_size, mode):
     y_data_gen = ImageDataGenerator(**y_data_gen_args)
 
     # random index for random data access.
-    d_size = x_imgs.shape[0]
+    d_size = x_imgs.shape[0]  #512
     shuffled_idx = list(range(d_size))
 
     x = []
@@ -144,7 +144,7 @@ def data_generator(d_path, b_size, mode):
             if len(x) == b_size:
                 # Adapt ImageDataGenerator flow method for data augmentation.
                 _ = np.zeros(b_size)
-                seed = random.randrange(1, 1000)
+                seed = random.randrange(1, 100)
 
                 x_tmp_gen = x_data_gen.flow(np.array(x), _,
                                             batch_size=b_size,

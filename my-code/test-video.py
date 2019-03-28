@@ -2,22 +2,27 @@ from __future__ import print_function
 from keras.backend.tensorflow_backend import set_session
 import tensorflow as tf
 import keras
-from glob import glob
 import argparse
 import cv2
 import numpy as np
-from skimage import io,transform
+
 from model.one_layer import simple_layer
-from model.aspp_shallow import fcn_shallow
+from model.fcn_shallow import fcn_shallow
 from model.fcn_deep import fcn_deep
 from differ import difference,diff_plot
-from model.unet import unet
-from model.fcn import fcn_8s
-from model.pspnet import pspnet50
 import os
+
+
+# GPU  '0' is available：
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-
+#GPU for different parts:
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.9
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
 
 with open('./define/colors.txt') as color:
     colors=color.read().strip().split("\n")
@@ -123,10 +128,7 @@ vw = cv2.VideoWriter()
 vw.open(vw_name, fourcc, fps, size)
 
 
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.9
-config.gpu_options.allow_growth = True
-set_session(tf.Session(config=config))
+
 
 #load models:
 t_start = cv2.getTickCount()

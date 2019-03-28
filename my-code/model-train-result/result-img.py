@@ -6,29 +6,32 @@ val_loss_img=[]
 dice_coef_img=[]
 val_dice_coef_img=[]
 
-with open('histor_loss.csv','r') as f1:
-    for i in csv.reader(f1):
-        for ii in range(len(i)):
-         loss_img.append(float(i[ii]))
-f1.close()
 
-with open('histor_val_loss.csv','r') as f2:
-    for j in csv.reader(f2):
-        for jj in range(len(j)):
-          val_loss_img.append(float(j[jj]))
-f2.close()
+class plot():
+    def __init__(self,name,path):
+        self.path=path
+        self.name=name
+    def csvread(self):
+        file=[]
+        with open(self.path,'r') as f:
+            for i in csv.reader(f):
+                for ii in range(len(i)):
+                    file.append(float(i[ii]))
+        f.close()
+        print('%s finished'%(self.name))
+        return file
 
-with open('histor_dice_coef.csv','r') as f3:
-    for k in csv.reader(f3):
-        for kk in range(len(k)):
-         dice_coef_img.append(float(k[kk]))
-f3.close()
+file1=plot('loss','histor_loss.csv')
+loss_img=file1.csvread()
 
-with open('histor_val_dice_coef.csv','r') as f4:
-    for l in csv.reader(f4):
-        for ll in range(len(l)):
-         val_dice_coef_img.append(float(l[ll]))
-f4.close()
+file2=plot('val_loss','histor_val_loss.csv')
+val_loss_img=file2.csvread()
+
+file3=plot('dice_coef','histor_dice_coef.csv')
+dice_coef_img=file3.csvread()
+
+file4=plot('val_dice_coef','histor_val_dice_coef.csv')
+val_dice_coef_img=file4.csvread()
 
 
 

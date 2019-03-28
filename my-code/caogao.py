@@ -173,3 +173,4 @@ with tf.Session() as sess:
 
 
 
+print(c.shape)

@@ -1,4 +1,6 @@
 from __future__ import print_function
+from keras.backend.tensorflow_backend import set_session
+import tensorflow as tf
 import csv
 import os
 import matplotlib.pyplot as plt
@@ -17,12 +19,23 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # Current python dir path
 dir_path = os.path.dirname(os.path.realpath('__file__'))
 
+#GPU '0' is available:
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+#GPU for different parts:
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.9
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
+
+
 # Parse Options
 parser = argparse.ArgumentParser()
 parser.add_argument("-M", "--model", required=True, choices=['fcn', 'unet', 'pspnet','ASPP'],
                     help="Model to train. 'fcn', 'unet', 'pspnet' is available.")
-parser.add_argument("-TB", "--train_batch", required=False, default=16, help="Batch size for train.")
-parser.add_argument("-VB", "--val_batch", required=False, default=8, help="Batch size for validation.")
+parser.add_argument("-TB", "--train_batch", required=False, default=2, help="Batch size for train.")
+parser.add_argument("-VB", "--val_batch", required=False, default=2, help="Batch size for validation.")
 parser.add_argument("-LI", "--lr_init", required=False, default=3e-4, help="Initial learning rate.")
 parser.add_argument("-LD", "--lr_decay", required=False, default=5e-4, help="How much to decay the learning rate.")
 parser.add_argument("--vgg", required=False, default=None, help="Pretrained vgg16 weight path.")
@@ -40,10 +53,7 @@ vgg_path = args.vgg
 c=vars(args)
 CLASSES = open(c["classes"]).read().strip().split("\n")
 
-print(CLASSES)
-
-# Use only 3 classes.
-# labels = ['background', 'person', 'car', 'road']
+# print(CLASSES)
 
 # if a colors file was supplied, load it from disk
 if c["colors"]:
@@ -87,13 +97,13 @@ checkpoint = ModelCheckpoint(filepath='./weight/'+model_name + '_model_weight.h5
 #early_stopping = EarlyStopping(monitor='val_dice_coef', patience=10)
 
 # training
-# aa,bb=data_generator('dataset_parser/data.h5', TRAIN_BATCH, 'train')
+
 history = model.fit_generator(data_generator('dataset_parser/data.h5', TRAIN_BATCH, 'train'),
                               steps_per_epoch=512 // TRAIN_BATCH,
                               validation_data=data_generator('dataset_parser/data.h5', VAL_BATCH, 'val'),
-                              validation_steps=256// VAL_BATCH,
+                              validation_steps=20// VAL_BATCH,
                               callbacks=[checkpoint],
-                              epochs=150,
+                              epochs=2,
                               verbose=1)
 
 # plt.title("loss")
