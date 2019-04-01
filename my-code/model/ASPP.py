@@ -10,7 +10,8 @@ from keras import backend as K
 
 import tensorflow as tf
 import cv2
-
+from keras.utils import plot_model
+import matplotlib.pyplot as plt
 def dice_coef(y_true, y_pred):
     return (2. * K.sum(y_true * y_pred) + 1.) / (K.sum(y_true) + K.sum(y_pred) + 1.)
 
@@ -78,7 +79,8 @@ def ASPP(num_classes, input_shape, lr_init, lr_decay):
                   loss='categorical_crossentropy',
                   metrics=[dice_coef])
 
-
+    plot_model(model, to_file='model_train_result/aspp_model.png')
+    # plt.savefig('model_train_result/aspp_model.png')
     model.summary()
 
     return model

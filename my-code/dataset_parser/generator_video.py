@@ -5,10 +5,7 @@ import cv2
 import csv
 from keras.preprocessing.image import ImageDataGenerator
 
-# Use only 3 classes.
-# labels = ['background', 'person', 'car', 'road']
-with open('./define/classes.txt','r') as f:
-     c = f.read().strip().split("\n")
+
 
 def pre_processing(img):
     #随机增强0.9~1.1倍
@@ -61,7 +58,7 @@ def get_data_gen_args(mode):
 # One hot encoding for y_img.
 def get_result_map(b_size, y_img):
     y_img = np.squeeze(y_img, axis=3)
-    result_map = np.zeros((b_size, 256, 512, 19))
+    result_map = np.zeros((b_size, 256, 512, 9))
 
     # import pandas as pd
     # data1 = pd.DataFrame(y_img[:,:,0])
@@ -71,51 +68,31 @@ def get_result_map(b_size, y_img):
     person = (y_img == 24)
     car = (y_img == 26)
     road = (y_img == 7)
-    sidewalk=(y_img==8)
-    building=(y_img==11)
-    wall=(y_img==12)
-    fence=(y_img==13)
-    pole=(y_img==17)
-    trafficLight=(y_img==19)
-    trafficSign=(y_img==20)
-    vegetation=(y_img==21)
-    ground=(y_img==6)
-    sky=(y_img==23)
     rider=(y_img==24)
     truck=(y_img==27)
     bus=(y_img==28)
     motorcycle=(y_img==32)
     bicycle=(y_img==33)
 
-    background = np.logical_not(person + car + road+sidewalk+building+ wall+ fence+pole+trafficLight+trafficSign+vegetation+ground+sky+rider+truck+bus+motorcycle+bicycle)
+    background = np.logical_not(person + car + road+rider+truck+bus+motorcycle+bicycle)
     # if person==1:
     #    print("person!\n")
     # for i in range(20):
     result_map[:, :, :, 0] = np.where(background, 1, 0)
     result_map[:, :, :, 1] = np.where(road, 1, 0)
-    result_map[:, :, :, 2] = np.where(sidewalk, 1, 0)
-    result_map[:, :, :, 3] = np.where(building, 1, 0)
-    result_map[:, :, :, 4] = np.where(wall, 1, 0)
-    result_map[:, :, :, 5] = np.where(fence, 1, 0)
-    result_map[:, :, :, 6] = np.where(pole, 1, 0)
-    result_map[:, :, :, 7] = np.where(trafficLight, 1, 0)
-    result_map[:, :, :, 8] = np.where(trafficSign, 1, 0)
-    result_map[:, :, :, 9] = np.where(vegetation, 1, 0)
-    result_map[:, :, :, 10] = np.where(ground, 1, 0)
-    result_map[:, :, :, 11] = np.where(sky, 1, 0)
-    result_map[:, :, :, 12] = np.where(person, 1, 0)
-    result_map[:, :, :, 13] = np.where(rider, 1, 0)
-    result_map[:, :, :, 14] = np.where(car, 1, 0)
-    result_map[:, :, :, 15] = np.where(truck, 1, 0)
-    result_map[:, :, :, 16] = np.where(bus, 1, 0)
-    result_map[:, :, :, 17] = np.where(motorcycle, 1, 0)
-    result_map[:, :, :, 18] = np.where(bicycle, 1, 0)
+    result_map[:, :, :, 2] = np.where(person, 1, 0)
+    result_map[:, :, :, 3] = np.where(rider, 1, 0)
+    result_map[:, :, :, 4] = np.where(car, 1, 0)
+    result_map[:, :, :, 5] = np.where(truck, 1, 0)
+    result_map[:, :, :, 6] = np.where(bus, 1, 0)
+    result_map[:, :, :, 7] = np.where(motorcycle, 1, 0)
+    result_map[:, :, :, 8] = np.where(bicycle, 1, 0)
 
     return result_map
 
 
 # Data generator for fit_generator.
-def data_generator(d_path, b_size, mode):
+def data_generator_video(d_path, b_size, mode):
     data = h5py.File(d_path, 'r')
     x_imgs = data.get('/' + mode + '/x')   #original_data
     y_imgs = data.get('/' + mode + '/y')   #truth_data

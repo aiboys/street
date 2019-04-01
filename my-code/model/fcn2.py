@@ -21,7 +21,7 @@ def dice_coef(y_true, y_pred):
 # # return K.mean(2.*(K.sum(y_true * y_pred)) / (K.sum(y_true*y_true) + K.sum(y_pred*y_pred)))     #dice_coef
 # return 2. * K.sum(y_pred * y_true) / (K.sum(y_true) + K.sum(y_pred))     # MIoU
 
-def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
+def fcn_8s_2(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
 
     img_input = Input(input_shape, name='input')
 
@@ -30,9 +30,6 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    x = Conv2D(64, (3, 3), padding='same', name='block1_conv2')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
 
     x = MaxPooling2D()(x)
 
@@ -41,22 +38,16 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    x = Conv2D(128, (3, 3), padding='same', name='block2_conv2')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
 
     x = MaxPooling2D()(x)
     # 64 128 128
     # Block 3
-    x = Conv2D(256, (3, 3), padding='same', name='block3_conv1')(x)
+    x = Conv2D(128, (3, 3), padding='same', name='block3_conv1')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    x = Activation('relu')(x)                 # 64 128 256
 
+ #-------------------------------------------------------------------------------
     x = Conv2D(256, (3, 3), padding='same', name='block3_conv2')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-
-    x = Conv2D(256, (3, 3), padding='same', name='block3_conv3')(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
@@ -71,10 +62,6 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    x = Conv2D(512, (3, 3), padding='same', name='block4_conv3')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-
     block_4_out = MaxPooling2D()(x)
 
     # Block 5
@@ -82,11 +69,8 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    x = Conv2D(512, (3, 3), padding='same', name='block5_conv2')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
 
-    x = Conv2D(512, (3, 3), padding='same', name='block5_conv3')(x)
+    x = Conv2D(512, (3, 3), padding='same', name='block5_conv2')(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
@@ -98,10 +82,8 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     #     vgg16.load_weights(vgg_weight_path, by_name=True)
 
     # Convolutinalized fully connected layer.
-    x = Conv2D(1024, (7, 7), activation='relu', padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = Conv2D(1024, (1, 1), activation='relu', padding='same')(x)
+
+    x = Conv2D(256, (1, 1), activation='relu', padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
@@ -118,19 +100,18 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     block_4_out = Conv2D(num_classes, (1, 1), strides=(1, 1), activation='linear',name='three')(block_4_out)
     block_4_out = BatchNormalization()(block_4_out)
 
-    # a=[x.shape[1]*2,x.shape[2]*2]
-    x = Lambda(lambda x: tf.image.resize_images(x, [16,32]))(x)
+    a=[x.shape[1]*2,x.shape[2]*2]
+    x = Lambda(lambda x: tf.image.resize_images(x, a))(x)
     x = Add()([x, block_4_out])
     x = Activation('relu')(x)
 
     b=(x.shape[1]*2,x.shape[2]*2)
-    x = Lambda(lambda x: tf.image.resize_images(x, [32,64]))(x)
+    x = Lambda(lambda x: tf.image.resize_images(x, (x.shape[1] * 2, x.shape[2] * 2)))(x)
     x = Add()([x, block_3_out])
     x = Activation('relu')(x)
 
     c=(x.shape[1]*8,x.shape[2]*8)
-    x = Lambda(lambda x: tf.image.resize_images(x, [256,512]))(x)
-
+    x = Lambda(lambda x: tf.image.resize_images(x, (x.shape[1] * 8, x.shape[2] * 8)))(x)
     x = Activation('softmax',name='act')(x)
 
     model = Model(img_input, x)
@@ -138,8 +119,8 @@ def fcn_8s(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
                   loss='categorical_crossentropy',
                   metrics=[dice_coef])
 
-    plot_model(model, to_file='model_train_result/fcn_8s_model.png')
-    # plt.savefig('model_train_result/fcn_8s_model.png')
+    # plot_model(model, to_file='./fcn_model.png')
+    # plt.savefig('fcn_model.png')
 
     model.summary()
 

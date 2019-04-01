@@ -9,10 +9,12 @@ import numpy as np
 from model.one_layer import simple_layer
 from model.fcn_shallow import fcn_shallow
 from model.fcn_deep import fcn_deep
-from differ import difference,diff_plot
+from video_py.differ import difference,diff_plot
 import os
-
-
+import time
+from model.fcn2_deep import fcn2_deep
+from model.fcn2_shallow import fcn2_shallow
+from model.simple2_layer import simple2_layer
 # GPU  '0' is available：
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -24,7 +26,7 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.9
 config.gpu_options.allow_growth = True
 set_session(tf.Session(config=config))
 
-with open('./define/colors.txt') as color:
+with open('../define/colors2.txt') as color:
     colors=color.read().strip().split("\n")
     COLORS = [np.array(c.split(",")).astype("int") for c in colors]
     COLORS = np.array(COLORS, dtype="uint8")
@@ -85,25 +87,35 @@ def mask(pic):
 dir_path = os.path.dirname(os.path.realpath('__file__'))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-M", "--model", required=True, choices=['fcn', 'unet', 'pspnet'],
+parser.add_argument("-M", "--model", required=True, choices=['fcn', 'unet', 'pspnet','fcn2'],
                     help="Model to test. 'fcn', 'unet', 'pspnet' is available.")
 parser.add_argument("-N", "--num", required=True, choices=['00','01','02'], help="The video num you want to test : 00,01,02...")
-parser.add_argument("-c", "--classes", required=True, default='--classes define/classes.txt', help="path to .txt file containing class labels")
-parser.add_argument("-l", "--colors", required=True,type=str, default='--colors define/colors.txt', help="path to .txt file containing colors for labels")
+# parser.add_argument("-c", "--classes", required=True, default='--classes define/classes.txt', help="path to .txt file containing class labels")
+# parser.add_argument("-l", "--colors", required=True,type=str, default='--colors define/colors.txt', help="path to .txt file containing colors for labels")
 
 args = parser.parse_args()
 model_name = args.model
 video_num=args.num
-c=vars(args)
-CLASSES = open(c["classes"]).read().strip().split("\n")
 
-# shallow layer：
-model_shallow = fcn_shallow(input_shape=(256, 512, 3))
+
+with open('../define/classes2.txt','r') as f:
+    CLASSES= f.read().strip().split("\n")
+
+# shallow layer： fcn:
+# model_shallow = fcn_shallow(input_shape=(256, 512, 3))
+# #deep layer：
+# model_deep= fcn_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
+# #（1,1）layer -the end：
+# model_1_1= simple_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
+
+
+
+#fcn2:
+model_shallow = fcn2_shallow(input_shape=(256, 512, 3))
 #deep layer：
-model_deep= fcn_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
+model_deep= fcn2_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
 #（1,1）layer -the end：
-model_1_1= simple_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
-
+model_1_1= simple2_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
 
 # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 # fourcc = cv2.VideoWriter_fourcc('M', 'P', '4', 'V')
@@ -113,38 +125,43 @@ model_1_1= simple_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
 
 print("load model_weights...\n")
 # vc = cv2.VideoCapture('./data-video/'+'video'+video_num+'.mp4')
-vc = cv2.VideoCapture('J:/video/01.mp4')
+vc = cv2.VideoCapture('../data_video/video00.mp4')
 print(vc.isOpened())
 
 size=(int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT)),int(vc.get(cv2.CAP_PROP_FRAME_WIDTH)))
 #视频编码
 # fourcc=int(vc.get(cv2.CAP_PROP_FOURCC))
-fourcc = cv2.VideoWriter_fourcc(*'mpeg')
+fourcc = cv2.VideoWriter_fourcc(*'avc1')
 #视频帧
 fps = vc.get(cv2.CAP_PROP_FPS)
-vw_name = './data-video/'+'result_video'+video_num+'.mp4'
+vw_name = '../data_video/'+'result_video'+video_num+'.mp4'
 #输出视频
-vw = cv2.VideoWriter()
-vw.open(vw_name, fourcc, fps, size)
+vw = cv2.VideoWriter(vw_name,fourcc,25,(512,256))
+# # vw.open(vw_name, fourcc, fps, size)
 
+
+config = tf.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 0.9
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
 
 
 
 #load models:
 t_start = cv2.getTickCount()
 try:
-    model_shallow.load_weights('./weight/'+model_name + '_model_weight.h5', by_name=True)
+    model_shallow.load_weights('../weight/'+model_name + '_model_weight.h5', by_name=True)
 
 except:
     print("model_shallow must be trained before test.")
 
 try:
-    model_1_1.load_weights('./weight/' + model_name + '_model_weight.h5', by_name=True)
+    model_1_1.load_weights('../weight/' + model_name + '_model_weight.h5', by_name=True)
 except:
     print("model_1_1 must be trained before test")
 
 try:
-    model_deep.load_weights('./weight/' + model_name + '_model_weight.h5', by_name=True)
+    model_deep.load_weights('../weight/' + model_name + '_model_weight.h5', by_name=True)
 except:
     print("model_deep must be trained before test")
 
@@ -167,7 +184,7 @@ while True:
     ok, imgInput = vc.read()
     if ok is False:   #the end of the tesed video
         break
-
+    t1=time.time()
     imgInput = cv2.resize(imgInput, (512, 256), interpolation=cv2.INTER_AREA)
     b, g, r = cv2.split(imgInput)
     img_rgb = cv2.merge([r, g, b])
@@ -175,7 +192,8 @@ while True:
 
     input_data = np.expand_dims(input_data, 0)
     sess = tf.Session()
-
+    t2=time.time()
+    print("t_11: %s"%((t2-t1)*1000))
     if frame==0:
         flag=1
         key_feature=[]
@@ -194,9 +212,9 @@ while True:
     # print("[*] difference Time: %.3f ms\n" % t_total)
     c=diff.eval(session=sess)
     diff_record.append(c)
-    print(c)
     if frame!=0:
        if c>theta:
+          t_k=time.time()
           flag=1
           key_feature=[]
           #shallow predict
@@ -208,8 +226,10 @@ while True:
           key_feature.append(result)
           key_frame_record.append(frame)   #存储关键帧序号
           key_frame.append(img_rgb)     #存储关键帧
-
+          t_kk=time.time()
+          print("t_k:%s"%((t_kk-t_k)*1000))
        else:
+          t_c=time.time()
           flag=0
           #shallow layer:
           result_shallow=shallow_predict(pic=input_data,flag=flag)
@@ -220,15 +240,16 @@ while True:
 
           #mask
           imgmask=mask(result)
-
+          t_cc=time.time()
+          print("t_c: %s"%((t_cc-t_c)*1000))
     flag_record.append(flag)
 
 
     frame=frame+1
 
     imgShow = cv2.cvtColor(imgInput, cv2.COLOR_RGB2BGR)
-    imgMaskColor = imgmask
-    imgShow = cv2.addWeighted(imgShow, 0.5, imgMaskColor, 0.6, 0.0)
+#    imgMaskColor = imgmask
+    imgShow = cv2.addWeighted(imgShow, 0.5, imgmask, 0.6, 0.0)
     #
     cv2.imshow('show', imgShow)
 
