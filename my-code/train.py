@@ -15,6 +15,7 @@ from model.ASPP import ASPP
 from model.aspp2 import  ASPP2
 from dataset_parser.generator import data_generator
 import os
+from model.FCN_0 import FCN
 from keras.utils import plot_model
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -34,7 +35,7 @@ set_session(tf.Session(config=config))
 
 # Parse Options
 parser = argparse.ArgumentParser()
-parser.add_argument("-M", "--model", required=True, choices=['fcn','ASPP','resnet','ASPP2'],
+parser.add_argument("-M", "--model", required=True, choices=['fcn','ASPP','resnet','ASPP2','FCN0'],
                     help="Model to train. 'fcn', 'unet', 'pspnet' is available.")
 parser.add_argument("-TB", "--train_batch", required=False, default=1, help="Batch size for train.")
 parser.add_argument("-VB", "--val_batch", required=False, default=1, help="Batch size for validation.")
@@ -54,6 +55,7 @@ lr_decay = args.lr_decay
 vgg_path = args.vgg
 c=vars(args)
 
+vgg_path='weight/vgg16_weight.h5'
 
 with open('./define/classes.txt','r') as f:
     CLASSES= f.read().strip().split("\n")
@@ -63,6 +65,9 @@ with open('./define/classes.txt','r') as f:
 # Choose model to train
 if model_name == "fcn":
     model = fcn_8s(input_shape=(256, 512, 3), num_classes=len(CLASSES),
+                   lr_init=lr_init, lr_decay=lr_decay, vgg_weight_path=vgg_path)
+elif model_name == "FCN0":
+    model = FCN(input_shape=(256, 512, 3), num_classes=len(CLASSES),
                    lr_init=lr_init, lr_decay=lr_decay, vgg_weight_path=vgg_path)
 elif model_name=="ASPP":
     model = ASPP(input_shape=(256, 512, 3), num_classes=len(CLASSES), lr_init=lr_init, lr_decay=lr_decay)

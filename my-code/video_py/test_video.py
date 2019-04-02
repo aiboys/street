@@ -251,22 +251,22 @@ while True:
 #    imgMaskColor = imgmask
     imgShow = cv2.addWeighted(imgShow, 0.5, imgmask, 0.6, 0.0)
     #
-    cv2.imshow('show', imgShow)
-
-    cv2.waitKey(24)
-    vw.write(imgShow)
-    key_cv = cv2.waitKey(1)
-    if key_cv == 27:
-        break
+    # cv2.imshow('show', imgShow)
+    #
+    # # cv2.waitKey(24)
+    # vw.write(imgShow)
+    # key_cv = cv2.waitKey(1)
+    # if key_cv == 27:
+    #     break
 
 
 vc.release()
 vw.release()
 
-file=open('data.txt','w')
+file=open('KEY_FRAME.txt','w')
 file.write(str(key_frame_record))
 file.close()
-key_c=cv2.waitKey()
+# key_c=cv2.waitKey()
 
 diff_plot(diff_record=diff_record,flag_record=flag_record,frame=frame,theta_record=theta)
 
