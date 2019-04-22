@@ -1,6 +1,6 @@
 from keras.models import Model
 from keras.layers import Input
-from keras.layers.core import Lambda, Activation
+from keras.layers.core import Lambda, Activation,Dropout
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers.merge import Add
@@ -79,7 +79,7 @@ def FCN(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
 
     x = MaxPooling2D(name='pool1')(x)
 
-
+    # x=Dropout('0.2')(x)
     # Block 2
 
     x = Conv2D(128, (3, 3), padding='same', name='block2_conv1_')(x)
