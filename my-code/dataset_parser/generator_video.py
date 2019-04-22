@@ -114,7 +114,7 @@ def data_generator_video(d_path, b_size, mode):
             idx = shuffled_idx[i]
 
             x.append(x_imgs[idx].reshape((256, 512, 3)))
-            y.append(y_imgs[idx].reshape((256, 512, 1)))
+            y.append(y_imgs[idx].reshape((256, 5128, 1)))
 
             if len(x) == b_size:
                 # Adapt ImageDataGenerator flow method for data augmentation.

@@ -101,21 +101,24 @@ video_num=args.num
 with open('../define/classes2.txt','r') as f:
     CLASSES= f.read().strip().split("\n")
 
+
+
+
 # shallow layer： fcn:
-# model_shallow = fcn_shallow(input_shape=(256, 512, 3))
-# #deep layer：
-# model_deep= fcn_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
-# #（1,1）layer -the end：
-# model_1_1= simple_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
+model_shallow = fcn_shallow(input_shape=(256, 512, 3))
+#deep layer：
+model_deep= fcn_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
+#（1,1）layer -the end：
+model_1_1= simple_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
 
 
 
 #fcn2:
-model_shallow = fcn2_shallow(input_shape=(256, 512, 3))
-#deep layer：
-model_deep= fcn2_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
-#（1,1）layer -the end：
-model_1_1= simple2_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
+# model_shallow = fcn2_shallow(input_shape=(256, 512, 3))
+# #deep layer：
+# model_deep= fcn2_deep(input_shape=(64,128,128),num_classes=len(CLASSES))
+# #（1,1）layer -the end：
+# model_1_1= simple2_layer(input_shape=(64,128,128),num_classes=len(CLASSES))
 
 # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 # fourcc = cv2.VideoWriter_fourcc('M', 'P', '4', 'V')
@@ -234,10 +237,11 @@ while True:
           #shallow layer:
           result_shallow=shallow_predict(pic=input_data,flag=flag)
           #deep layer:
-          result_deep=one_predict(result_shallow)
+          # result_deep=one_predict(result_shallow)
           #average:
-          result=(key_feature[len(key_feature)-1]+result_deep)/2
-
+          # result=(key_feature[len(key_feature)-1]+result_deep)/2
+          mid_feature = np.concatenate([key_feature[len(key_feature)-1], result_shallow],axis= 3)
+          result = cnn.predict(mid_feature)
           #mask
           imgmask=mask(result)
           t_cc=time.time()

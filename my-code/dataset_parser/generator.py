@@ -61,15 +61,14 @@ def get_data_gen_args(mode):
 # One hot encoding for y_img.
 def get_result_map(b_size, y_img):
     y_img = np.squeeze(y_img, axis=3)
-    result_map = np.zeros((b_size, 256, 512, 19))
+    result_map = np.zeros((b_size, 512, 1024, 19))
 
     # import pandas as pd
     # data1 = pd.DataFrame(y_img[:,:,0])
     # data1.to_csv('data1.csv')
 
     # For np.where calculation.
-    person = (y_img == 24)
-    car = (y_img == 26)
+
     road = (y_img == 7)
     sidewalk=(y_img==8)
     building=(y_img==11)
@@ -79,15 +78,17 @@ def get_result_map(b_size, y_img):
     trafficLight=(y_img==19)
     trafficSign=(y_img==20)
     vegetation=(y_img==21)
-    ground=(y_img==6)
+    terrain=(y_img==22 )
     sky=(y_img==23)
-    rider=(y_img==24)
+    person = (y_img == 24)
+    rider=(y_img==25)
+    car = (y_img == 26)
     truck=(y_img==27)
     bus=(y_img==28)
     motorcycle=(y_img==32)
     bicycle=(y_img==33)
 
-    background = np.logical_not(person + car + road+sidewalk+building+ wall+ fence+pole+trafficLight+trafficSign+vegetation+ground+sky+rider+truck+bus+motorcycle+bicycle)
+    background = np.logical_not(person + car + road+sidewalk+building+ wall+ fence+pole+trafficLight+trafficSign+vegetation+terrain+sky+rider+truck+bus+motorcycle+bicycle)
     # if person==1:
     #    print("person!\n")
     # for i in range(20):
@@ -101,7 +102,7 @@ def get_result_map(b_size, y_img):
     result_map[:, :, :, 7] = np.where(trafficLight, 1, 0)
     result_map[:, :, :, 8] = np.where(trafficSign, 1, 0)
     result_map[:, :, :, 9] = np.where(vegetation, 1, 0)
-    result_map[:, :, :, 10] = np.where(ground, 1, 0)
+    result_map[:, :, :, 10] = np.where(terrain, 1, 0)
     result_map[:, :, :, 11] = np.where(sky, 1, 0)
     result_map[:, :, :, 12] = np.where(person, 1, 0)
     result_map[:, :, :, 13] = np.where(rider, 1, 0)
@@ -125,6 +126,7 @@ def data_generator(d_path, b_size, mode):
     x_data_gen = ImageDataGenerator(**x_data_gen_args)
     y_data_gen = ImageDataGenerator(**y_data_gen_args)
 
+
     # random index for random data access.
     d_size = x_imgs.shape[0]  #512
     shuffled_idx = list(range(d_size))
@@ -134,10 +136,13 @@ def data_generator(d_path, b_size, mode):
     while True:
         random.shuffle(shuffled_idx)
         for i in range(d_size):
-            idx = shuffled_idx[i]
-
-            x.append(x_imgs[idx].reshape((256, 512, 3)))
-            y.append(y_imgs[idx].reshape((256, 512, 1)))
+            idx = shuffled_idx[i]  #0....512随机数
+            x_img=x_imgs[idx].reshape((256, 512, 3))
+            y_img=y_imgs[idx].reshape((256,512,1))
+            y_img=cv2.resize(y_img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+            x_img=cv2.resize(x_img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+            x.append(x_img)
+            y.append(y_img.reshape((512,1024,1)))
 
             if len(x) == b_size:
                 # Adapt ImageDataGenerator flow method for data augmentation.

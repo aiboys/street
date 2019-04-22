@@ -8,7 +8,7 @@ pole
 trafficLight
 trafficSign
 vegetation
-ground
+terrain
 sky
 person
 rider

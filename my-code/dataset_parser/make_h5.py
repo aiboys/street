@@ -41,6 +41,7 @@ def get_data(mode):
             for filename in files:
                 x_paths.append(os.path.join(path, filename))
 
+        c = cv2.imread(x_paths[5])
 
         # Find ground_truth file paths with x_paths.
         idx = len(tmp_img_folder_path)
@@ -73,8 +74,6 @@ def write_data(h5py_file, mode, x_paths, y_paths):
         y_img = cv2.imread(y_paths[i])
         y_img = cv2.resize(y_img, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
         y_img = y_img[:, :, 0]
-
-
 
         x_dset[i] = x_img.flatten()
         y_dset[i] = y_img.flatten()

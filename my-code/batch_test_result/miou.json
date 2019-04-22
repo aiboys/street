@@ -1,0 +1,22 @@
+{
+    "background": 0.36140764009767506,
+    "road": 6.248366013071895,
+    "sidewalk": 0.0,
+    "building": 0.04036895303108785,
+    "wall": 0.0,
+    "fence": 0.0,
+    "pole": 0.0,
+    "trafficLight": 0.0,
+    "trafficSign": 0.0,
+    "vegetation": 52.47191767803485,
+    "terrain": 0.1496451712434434,
+    "sky": 0.0,
+    "person": 0.0,
+    "rider": 0.0,
+    "car": 0.018494544109487702,
+    "truck": 1.123027082871154,
+    "bus": 0.0,
+    "motorcycle": 0.0,
+    "bicycle": 0.0,
+    "miou": 3.179643530655768
+}

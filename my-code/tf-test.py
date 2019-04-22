@@ -2,9 +2,10 @@ import tensorflow as tf
 import  numpy as np
 import os
 import argparse
-
+import h5py
 import cv2
 import time
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 with open('./define/colors.txt') as color:
     colors=color.read().strip().split("\n")
     COLORS = [np.array(c.split(",")).astype("int") for c in colors]
@@ -45,6 +46,22 @@ args = parser.parse_args()
 # model_name = args.model
 # img_path = args.img_path
 c=vars(args)
+
+vc = cv2.VideoCapture('./data_video/video00.mp4')
+print(vc.isOpened())
+
+size=(int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT)),int(vc.get(cv2.CAP_PROP_FRAME_WIDTH)))
+#视频编码
+# fourcc=int(vc.get(cv2.CAP_PROP_FOURCC))
+fourcc = cv2.VideoWriter_fourcc(*'avc1')
+#视频帧
+fps = vc.get(cv2.CAP_PROP_FPS)
+vw_name = './data_video/'+'result_video00'+'.mp4'
+#输出视频
+vw = cv2.VideoWriter(vw_name,fourcc,25,(512,256))
+# # vw.open(vw_name, fourcc, fps, size)
+
+
 #FCN:
 # input is : input:0
 # output is: act/truediv:0
@@ -54,7 +71,12 @@ c=vars(args)
 #ASPP2:
 # input is : input_1:0
 # output is: activation_11/truediv:0
-output_graph_path='./weight/ASPP_model_weight.pb'
+# FCN0:
+# input is : input_1:0
+# output is: activation_18/truediv:0
+i=0
+f = h5py.File('data.h5', 'w')
+output_graph_path='./weight/FCN0_model_weight.pb'
 with open(output_graph_path, "rb") as f:
         output_graph_def = tf.GraphDef()
         output_graph_def.ParseFromString(f.read())
@@ -63,29 +85,36 @@ with open(output_graph_path, "rb") as f:
         with tf.Session() as sess:
             tf.initialize_all_variables().run()
             input_x = sess.graph.get_tensor_by_name("input_1:0")
-            output = sess.graph.get_tensor_by_name("activation_9/truediv:0")
-            in_data ='./dataset/test.png'
+            output = sess.graph.get_tensor_by_name("activation_18/truediv:0")
 
-            x_img = cv2.imread(in_data)
-            # x_img=x_img.resize((256,512),Image.ANTIALIAS)
-            x_img = cv2.resize(x_img, (512, 256), interpolation=cv2.INTER_AREA)
-            x_img = cv2.cvtColor(x_img, cv2.COLOR_BGR2RGB)
-            origin=x_img
-            x_img = x_img / 127.5 - 1
-            x_img = np.expand_dims(x_img, 0)
+            while i < 15:
+                    ok, imgInput = vc.read()
+                    if ok is False:  # the end of the tesed video
+                        break
 
-            t1=time.time()
-            y_conv_2 = sess.run(output, {input_x: x_img})
-            t2=time.time()
-            print('predict time:%s'%((t2-t1)*1000))
+                    imgInput = cv2.resize(imgInput, (512, 256), interpolation=cv2.INTER_AREA)
+                    b, g, r = cv2.split(imgInput)
+                    img_rgb = cv2.merge([r, g, b])
+                    input_data = img_rgb / 127.5 - 1
 
-            res = result_map_to_img(y_conv_2[0])  # 10ms
-            res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
-            cv2.imwrite('./output-img/res.png', res)
-            # origin=cv2.cvtColor(origin, cv2.COLOR_RGB2BGR)
-            mask = cv2.addWeighted(origin, 0.5, res, 0.6, 0.0)
-            # cv2.imshow('mask', mask)
-            cv2.imwrite('./output-img/mask.png', mask)
+                    input_data = np.expand_dims(input_data, 0)
+                    t1 = time.time()
+                    res = sess.run(output, {input_x: input_data})
+                    print("predict time = %d" % ((time.time() - t1) * 1000))
+                    res = result_map_to_img(res[0])  # 10ms
+                    res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
+                    # cv2.imshow('res', res)
+                    mask = cv2.addWeighted(imgInput, 0.5, res, 0.6, 0.0)
+
+                    #
+                    # cv2.imshow('show', imgShow)
+                    #
+                    # # cv2.waitKey(24)
+                    vw.write(mask)
+                    # key_cv = cv2.waitKey(1)
+                    # if key_cv == 27:
+                    #     break
+                    i += 1
 
 
 

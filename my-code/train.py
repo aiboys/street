@@ -64,10 +64,10 @@ with open('./define/classes.txt','r') as f:
 
 # Choose model to train
 if model_name == "fcn":
-    model = fcn_8s(input_shape=(256, 512, 3), num_classes=len(CLASSES),
+    model = fcn_8s(input_shape=(1024, 2048, 3), num_classes=len(CLASSES),
                    lr_init=lr_init, lr_decay=lr_decay, vgg_weight_path=vgg_path)
 elif model_name == "FCN0":
-    model = FCN(input_shape=(256, 512, 3), num_classes=len(CLASSES),
+    model = FCN(input_shape=(512, 1024, 3), num_classes=len(CLASSES),
                    lr_init=lr_init, lr_decay=lr_decay, vgg_weight_path=vgg_path)
 elif model_name=="ASPP":
     model = ASPP(input_shape=(256, 512, 3), num_classes=len(CLASSES), lr_init=lr_init, lr_decay=lr_decay)
@@ -90,7 +90,7 @@ checkpoint = ModelCheckpoint(filepath='./weight/'+model_name + '_model_weight.h5
 # training
 
 history = model.fit_generator(data_generator('dataset_parser/data.h5', TRAIN_BATCH, 'train'),
-                              steps_per_epoch=1 // TRAIN_BATCH,
+                              steps_per_epoch=10 // TRAIN_BATCH,
                               validation_data=data_generator('dataset_parser/data.h5', VAL_BATCH, 'val'),
                               validation_steps=1// VAL_BATCH,
                               callbacks=[checkpoint],
@@ -100,9 +100,11 @@ history = model.fit_generator(data_generator('dataset_parser/data.h5', TRAIN_BAT
 
 
 history_loss=open('./model_train_result/histor_loss.csv','a',newline='')
-csv_write1=csv.writer(history_loss,dialect='excel')
-loss=history.history['loss']
-csv_write1.writerow(loss)
+history_loss.truncate()
+# csv_write1=csv.writer(history_loss,dialect='excel')
+# loss=history.history['loss']
+# csv_write1.writerow(loss)
+
 history_loss.close()
 
 history_val_loss=open('./model_train_result/histor_val_loss.csv','a',newline='')
