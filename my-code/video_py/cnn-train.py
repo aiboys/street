@@ -11,7 +11,7 @@ import csv
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from video_py.readnpy_ds2l import data_generator_cnn
-
+from dataset_parser.generator import data_generator
 # from video_py.readnpy_ds2l_with_val import data_generator_cnn_with_val
 from model.CNN import CNN
 
@@ -22,7 +22,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 model_name="CNN"
-model=CNN(num_classes=19,input_shape=(256,512,19),lr_init=3e-4,lr_decay=5e-4)
+model=CNN(num_classes=19,input_shape=(512,1024,3),lr_init=3e-4,lr_decay=5e-4)
 
 checkpoint = ModelCheckpoint(filepath='../weight/' + model_name + '_model_weight.h5',
                                  monitor='val_dice_coef',
@@ -34,13 +34,21 @@ checkpoint = ModelCheckpoint(filepath='../weight/' + model_name + '_model_weight
 
 # training
 
-history = model.fit_generator(data_generator_cnn( b_size=1),
-                                  steps_per_epoch=5 // 1,
-                                  # validation_data= data_generator_cnn_with_val(b_size=1),
-                                  # validation_steps= 2 / 1,
-                                  callbacks=[checkpoint],
-                                  epochs=1,
-                                  verbose=1)
+history = model.fit_generator(data_generator('dataset_parser/data.h5', 2, 'train'),
+                              steps_per_epoch=10 // 2,
+                              validation_data=data_generator('dataset_parser/data.h5', 2, 'val'),
+                              validation_steps=2// 2,
+                              callbacks=[checkpoint],
+                              epochs=1,
+                               verbose=1)
+#
+# history = model.fit_generator(data_generator_cnn( b_size=1),
+#                                   steps_per_epoch=5 // 1,
+#                                   # validation_data= data_generator_cnn_with_val(b_size=1),
+#                                   # validation_steps= 2 / 1,
+#                                   callbacks=[checkpoint],
+#                                   epochs=1,
+#                                   verbose=1)
 
 
 

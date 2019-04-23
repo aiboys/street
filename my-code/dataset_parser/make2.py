@@ -18,8 +18,8 @@ dir_path = os.path.dirname(os.path.realpath('__file__'))
 # gt_folder_path = args.gtpath
 # img_folder_path ='../dataset/leftImg8bit'
 # gt_folder_path='../dataset/gtfine'
-img_folder_path = 'L:\\cityscapes\\leftImg8bit'
-gt_folder_path='L:\\cityscapes\\gtFine'
+img_folder_path = 'L:\\cityscapes2\\leftImg8bit'
+gt_folder_path='L:\\cityscapes2\\gtFine'
 
 
 # Use only 3 classes.
@@ -41,7 +41,7 @@ def get_data(mode):
             for filename in files:
                 x_paths.append(os.path.join(path, filename))
 
-
+        c = cv2.imread(x_paths[5])
 
         # Find ground_truth file paths with x_paths.
         idx = len(tmp_img_folder_path)

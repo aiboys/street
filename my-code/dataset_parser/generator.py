@@ -7,7 +7,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 # Use only 3 classes.
 # labels = ['background', 'person', 'car', 'road']
-with open('./define/classes.txt','r') as f:
+with open('define/classes.txt','r') as f:
      c = f.read().strip().split("\n")
 
 def pre_processing(img):

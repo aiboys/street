@@ -69,11 +69,11 @@ def myloss(y_true, y_pred):
 def CNN(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     img_input = Input(input_shape)
 
-
-    x = Conv2D(64, ( 3,3), padding='same', name='con1')(img_input)
+    x = MaxPooling2D()(img_input)
+    x = Conv2D(64, ( 3,3), padding='same', name='con1')(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
-    # x = MaxPooling2D()(x)
+    x = MaxPooling2D()(x)
 
     # Block 2
     x = Conv2D(128, ( 3,3), padding='same', name='conv2')(x)
@@ -90,7 +90,7 @@ def CNN(num_classes, input_shape, lr_init, lr_decay, vgg_weight_path=None):
     x = BatchNormalization()(x)            # batchsize 256 512 19 361
 
 
-    # x = Lambda(lambda x: tf.image.resize_images(x, [256, 512]))(x)
+    x = Lambda(lambda x: tf.image.resize_images(x, [512, 1024]))(x)
 
     x = Activation('softmax')(x)
 
